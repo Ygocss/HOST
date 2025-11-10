@@ -6,23 +6,22 @@ from fastapi.responses import RedirectResponse
 from app.db.base import Base
 from app.db.session import engine
 
-# Routers v1 (no uses prefijos con /api aquí)
+# Routers v1 (NUNCA con prefijos que empiecen con "/api" aquí)
 from app.api.v1 import vehicles
 from app.api.v1 import service_records
 from app.api.v1 import reminders
 from app.api.v1 import chatbot
-from app.api.v1 import auth as auth_router  # /v1/auth/register, /v1/auth/login
+from app.api.v1 import auth as auth_router
 
 app = FastAPI(title="CarSense API")
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
         "http://localhost",
         "http://127.0.0.1",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
         "https://carsense.online",
         "https://www.carsense.online",
     ],
@@ -31,26 +30,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Al entrar a la raíz de la app, redirige a la documentación.
-# Con root_path=/api en Uvicorn, externamente esto vive en /api/
 @app.get("/", include_in_schema=False)
 def root_redirect():
-    return RedirectResponse(url=f"{app.root_path}/docs")
+    base = app.root_path or ""
+    return RedirectResponse(url=f"{base}/docs", status_code=307)
 
-# Healthchecks sin prefijo (el root_path añade /api externamente)
 @app.get("/health")
 @app.get("/v1/health")
-@app.get("/healt")  # compat: typo histórico
+@app.get("/healt")
 def health():
     return {"status": "ok"}
 
-# Crear tablas al iniciar (útil en dev / single-node)
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
 
-# Registrar routers SOLO en "" y en "/v1".
-# IMPORTANTE: NO uses "/api" ni "/api/v1" aquí; el root_path=/api ya lo añade externamente.
+# Registrar routers únicamente en "" y "/v1" (sin "/api")
 for prefix in ("", "/v1"):
     app.include_router(auth_router.router,     prefix=prefix, tags=["auth"])
     app.include_router(vehicles.router,        prefix=prefix, tags=["vehicles"])
