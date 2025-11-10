@@ -7,15 +7,11 @@ from app.db.base import Base
 from app.db.session import engine
 
 # Routers v1
-from app.api.v1 import vehicles
-from app.api.v1 import service_records
-from app.api.v1 import reminders
-from app.api.v1 import chatbot
-from app.api.v1 import auth as auth_router  # auth: /auth/register, /auth/login
+from app.api.v1 import vehicles, service_records, reminders, chatbot
+from app.api.v1 import auth as auth_router
 
-app = FastAPI(title="CarSense API")  # docs_url default = "/docs"
+app = FastAPI(title="CarSense API")
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -29,7 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Health (compat)
+# Health (deja todas las que ya tienes)
 @app.get("/health")
 @app.get("/api/health")
 @app.get("/api/v1/health")
@@ -37,17 +33,16 @@ app.add_middleware(
 def health():
     return {"status": "ok"}
 
-# Redirigir raíz del backend a la documentación
-@app.get("/")
-def root():
-    return RedirectResponse(url=f"{app.root_path}{app.docs_url}")
+# <<< NUEVO: cuando lleguen a /api/ (root de la app), mándalos a /docs
+@app.get("/", include_in_schema=False)
+def root_to_docs():
+    return RedirectResponse(url="/docs", status_code=307)
+# >>>
 
-# Crear tablas al iniciar (dev)
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
 
-# Registrar routers con prefijos "", "/api", "/api/v1"
 for prefix in ("", "/api", "/api/v1"):
     app.include_router(auth_router.router,     prefix=prefix, tags=["auth"])
     app.include_router(vehicles.router,        prefix=prefix, tags=["vehicles"])
