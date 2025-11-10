@@ -7,13 +7,15 @@ from app.db.base import Base
 from app.db.session import engine
 
 # Routers v1
-from app.api.v1 import vehicles, service_records, reminders, chatbot
-from app.api.v1 import auth as auth_router  # /auth/register, /auth/login
+from app.api.v1 import vehicles, service_records, reminders
+from app.api.v1 import auth as auth_router
+from app.api.v1 import chat as chat_router           # <-- usa chat.py
+from app.api.v1 import chatbot as chatbot_router     # opcional: compatibilidad (/chatbot/ask)
 
 app = FastAPI(
     title="CarSense API",
     version="0.1.0",
-    servers=[{"url": "/api"}],  # la doc externa se servirá bajo /api
+    servers=[{"url": "/api"}],  # base para docs tras el proxy
 )
 
 # CORS
@@ -32,15 +34,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Redirección a /docs respetando root_path
+# Redirección a /docs respetando root_path (/api)
 @app.get("/", include_in_schema=False)
 def root_redirect():
     return RedirectResponse(url=f"{app.root_path}/docs")
 
-# Health SIN /api aquí (root_path lo agrega externamente)
+# Health sin /api aquí (lo añade root_path del ASGI/uvicorn)
 @app.get("/health")
 @app.get("/v1/health")
-@app.get("/healt")  # compat
 def health():
     return {"status": "ok"}
 
@@ -60,8 +61,9 @@ def _routes():
 
 # Registrar routers SOLO en "" y "/v1" (NUNCA "/api")
 for prefix in ("", "/v1"):
-    app.include_router(auth_router.router,     prefix=prefix, tags=["auth"])
-    app.include_router(vehicles.router,        prefix=prefix, tags=["vehicles"])
-    app.include_router(service_records.router, prefix=prefix, tags=["services"])
-    app.include_router(reminders.router,       prefix=prefix, tags=["reminders"])
-    app.include_router(chatbot.router,         prefix=prefix, tags=["chatbot"])
+    app.include_router(auth_router.router,     prefix=prefix)
+    app.include_router(vehicles.router,        prefix=prefix)
+    app.include_router(service_records.router, prefix=prefix)
+    app.include_router(reminders.router,       prefix=prefix)
+    app.include_router(chat_router.router,     prefix=prefix)      # <-- añade /chat y /v1/chat
+    app.include_router(chatbot_router.router,  prefix=prefix)      # <-- mantiene /chatbot/ask
