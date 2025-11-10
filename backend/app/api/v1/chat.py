@@ -1,10 +1,11 @@
 # backend/app/api/v1/chat.py
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import re
 from typing import List, Dict, Optional
 
-router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
+# >>> No pongas /api ni /v1 aquí. El main agrega "" y "/v1".
+router = APIRouter(prefix="/chat", tags=["chat"])
 
 # --------- Utilidades simples ----------
 def norm(text: str) -> str:
@@ -70,14 +71,13 @@ OBD_DICT = {
 # --------- Modelos ----------
 class ChatIn(BaseModel):
     message: str
-    # opcionalmente podrías enviar {vehicle:{anio:int, km:int}} para hacer respuestas más específicas
     vehicle_km: Optional[int] = None
     vehicle_year: Optional[int] = None
 
 class ChatOut(BaseModel):
     reply: str
-    suggestions: List[str] = []
-    links: List[Dict[str, str]] = []
+    suggestions: List[str] = Field(default_factory=list)
+    links: List[Dict[str, str]] = Field(default_factory=list)
 
 # --------- Motor muy simple ----------
 def intent_reply(data: ChatIn) -> ChatOut:
