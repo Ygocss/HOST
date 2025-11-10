@@ -13,7 +13,7 @@ from app.api.v1 import auth as auth_router  # /auth/register, /auth/login
 app = FastAPI(
     title="CarSense API",
     version="0.1.0",
-    servers=[{"url": "/api"}],  # Docs con base /api
+    servers=[{"url": "/api"}],  # la doc externa se servirá bajo /api
 )
 
 # CORS
@@ -37,7 +37,7 @@ app.add_middleware(
 def root_redirect():
     return RedirectResponse(url=f"{app.root_path}/docs")
 
-# Health SIN /api aquí
+# Health SIN /api aquí (root_path lo agrega externamente)
 @app.get("/health")
 @app.get("/v1/health")
 @app.get("/healt")  # compat
