@@ -1,0 +1,29 @@
+# Node / Frontend
+node_modules/
+.next/
+.nuxt/
+dist/
+build/
+.cache/
+.parcel-cache/
+coverage/
+ECHO est  activado.
+# Python / Backend
+__pycache__/
+.venv/
+venv/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+ECHO est  activado.
+# Env / Secrets
+.env
+.env.* 
+ECHO est  activado.
+# IDE / OS
+.vscode/
+.idea/
+*.log
+.DS_Store
